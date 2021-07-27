@@ -1,33 +1,33 @@
 import express, { Application } from 'express'
 
-import swaggerUI from 'swagger-ui-express'
-import swaggerJSDoc from 'swagger-jsdoc'
-import { options } from './config/swagger'
+import passport from 'passport'
+import authMiddleware from './middleware/authentication'
 
 import routes from './routes'
 
 export default class App {
-    _app: Application
+  _app: Application
 
-    constructor (private port: number | string) {
-      this._app = express()
-      this.routes()
-    }
+  constructor (private port: number | string) {
+    this._app = express()
+    this.middlewares()
+    this.routes()
+  }
 
-    routes () {
-      this._app.use(routes())
-      this._app.use('/docs', swaggerUI.serve, swaggerUI.setup(this.swagger()))
-    }
+  middlewares () {
+    this._app.use(passport.initialize())
+    passport.use(authMiddleware)
+  }
 
-    swagger (): swaggerUI.JsonObject {
-      return swaggerJSDoc(options)
-    }
+  routes () {
+    this._app.use(routes())
+  }
 
-    start (callback: any | Function): void {
-      this._app.listen(this.port, callback)
-    }
+  start (callback: any | Function): void {
+    this._app.listen(this.port, callback)
+  }
 
-    static init (port: number | string): App {
-      return new App(port)
-    }
+  static init (port: number | string): App {
+    return new App(port)
+  }
 }
